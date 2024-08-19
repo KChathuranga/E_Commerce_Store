@@ -3,6 +3,8 @@ import asyncHandler from "../middlewares/asyncHandler.js";
 import bcrypt from "bcryptjs";
 import createToken from "../utils/createToken.js";
 
+
+//Create a new User
 const createUser = asyncHandler(async(req,res) => {
     const {username, email, password} = req.body;
     
@@ -42,4 +44,29 @@ const createUser = asyncHandler(async(req,res) => {
     }
 })
 
-export {createUser}
+// Login user
+const loginUser = asyncHandler(async(req, res)=>{
+    const {email, password} = req.body;
+
+    const exitingUser = await User.findOne({email})
+
+    if(exitingUser){
+        const isPasswordValid = await bcrypt.compare(password, exitingUser.password)
+
+        if(isPasswordValid) {
+            createToken(res, exitingUser._id)
+
+            res
+            .status(201)
+            .json({
+                _id:exitingUser._id, 
+                username:exitingUser.username, 
+                email:exitingUser.email, 
+                isAdmin:exitingUser.isAdmin
+            });
+            return;
+        }
+    }
+})
+
+export {createUser, loginUser};
